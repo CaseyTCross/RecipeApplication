@@ -1,13 +1,11 @@
-package com.cross.recipe;
-
+package com.cross.user;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class RecipeServiceApplication {
+public class UserServiceApplication {
     public static void main(String[] args) {
-        SpringApplication.run(RecipeServiceApplication.class, args);
+        SpringApplication.run(UserServiceApplication.class, args);
     }
-
 }
