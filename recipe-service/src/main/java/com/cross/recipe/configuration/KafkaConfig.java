@@ -33,7 +33,7 @@ public class KafkaConfig {
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        configs.put(JsonSerializer.TYPE_MAPPINGS, "event:com.cross.user.event.UserRecipeEvent");
+        configs.put(JsonSerializer.TYPE_MAPPINGS, "event:com.cross.recipe.event.UserRecipeEvent");
         return new DefaultKafkaProducerFactory<>(configs);
     }
 
@@ -57,7 +57,7 @@ public class KafkaConfig {
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        props.put("spring.json.type.mapping", "event:com.cross.user.event.UserRecipeEvent");
+        props.put("spring.json.type.mapping", "event:com.cross.recipe.event.UserRecipeEvent");
         return props;
     }
 
