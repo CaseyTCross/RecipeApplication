@@ -30,19 +30,25 @@ public class RecipeServiceImpl implements RecipeService{
 
     public List<Recipe> listUserRecipes(Long userId) {
 
+        System.out.println("Request hit listUserRecipes in RecipeServiceImpl");
         UserRecipeEvent userRecipeEvent = null;
         UserRecipeEvent sendUserRecipeEvent = new UserRecipeEvent();
         sendUserRecipeEvent.setUserId(userId);
+        System.out.println("Preparing to send to Kafka: " + sendUserRecipeEvent);
         CompletableFuture<SendResult<String,UserRecipeEvent>> result = kafkaTemplate.send("send-user-id-topic", sendUserRecipeEvent);
+        System.out.println("Completable Future result: " + result);
 
         try {
+            System.out.println("Try Block");
             SendResult<String, UserRecipeEvent> sendResult = result.get();
             userRecipeEvent = sendResult.getProducerRecord().value();
 
         } catch (Exception e) {
+            System.out.println("Catch Block");
             e.printStackTrace();
         }
         List<Recipe> recipeList = new ArrayList<>();
+        System.out.println("userRecipeEvent : " + userRecipeEvent);
         if(userRecipeEvent != null && userRecipeEvent.getRecipeIdList() != null && recipeRepository != null) {
             for(long l : userRecipeEvent.getRecipeIdList()) {
                 Recipe recipe = recipeRepository.getRecipeById(l);
