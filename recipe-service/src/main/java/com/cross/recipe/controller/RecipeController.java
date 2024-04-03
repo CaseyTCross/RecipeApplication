@@ -49,6 +49,7 @@ public class RecipeController {
     }
     @GetMapping("/kafka")
     private Iterable<Recipe> getter() {
+        System.out.println("Request hit getter method in controller");
         return recipeService.listUserRecipes((long)1);
     }
 
