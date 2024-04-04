@@ -8,10 +8,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +27,33 @@ public class RecipeController {
     @Autowired
     private RecipeServiceImpl recipeService;
 
+    @GetMapping("/user/{id}")
+    public ResponseEntity<List<Recipe>> getUserRecipes(@PathVariable Long id){
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(recipeService.getRecipesByUserId(id));
+
+    }
+
+    @PostMapping("/newRecipe")
+    public ResponseEntity<Recipe> createRecipe(@RequestBody Recipe recipe) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(recipeService.createRecipe(recipe));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
     @PostMapping("/seed")
     public void addSeedData() {
         Recipe recipe = new Recipe();
@@ -42,14 +68,6 @@ public class RecipeController {
         recipe.setIngredients(ingredients);
         recipeRepository.save(recipe);
 
-    }
-    @GetMapping("/get")
-    private Iterable<Recipe> get() {
-        return recipeRepository.findAll();
-    }
-    @GetMapping("/kafka")
-    private Iterable<Recipe> getter() {
-        return recipeService.listUserRecipes((long)1);
     }
 
 }

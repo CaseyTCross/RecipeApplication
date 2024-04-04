@@ -4,6 +4,8 @@ services:
     image: mysql:5.7
     ports:
       - "3307:3306"
+    networks:
+      - app-net
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: recipe_database
@@ -15,6 +17,8 @@ services:
     image: mysql:5.7
     ports:
       - "3308:3306"
+    networks:
+      - app-net
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: recipe_database
@@ -28,7 +32,7 @@ services:
     ports:
       - "2181:2181"
     networks:
-      - kafka-net
+      - app-net
   kafka:
       image: wurstmeister/kafka
       container_name: kafka
@@ -42,9 +46,35 @@ services:
         KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
         KAFKA_CREATE_TOPICS: "send-user-id-topic:1:1, receive-recipe-id-topic:1:1"
       networks:
-        - kafka-net
+        - app-net
+  discovery-server:
+    build:
+      context: ./discovery-server-service
+      dockerfile: Dockerfile
+    ports:
+    - "8761:8761"
+    networks:
+      - app-net
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    networks:
+        - app-net
+  recipe-service:
+    build:
+      context: ./recipe-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    networks:
+      - app-net
+
+
 networks:
-  kafka-net:
+  app-net:
     driver: bridge
 
 volumes:

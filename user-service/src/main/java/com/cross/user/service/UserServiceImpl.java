@@ -17,24 +17,11 @@ import java.util.Optional;
 public class UserServiceImpl {
 
     private final UserRepository userRepository;
-    private final KafkaTemplate<String, UserRecipeEvent> kafkaTemplate;
 
 
 
 
-    @EventListener
-    public void sendRecipeIdsToRecipeService(UserRecipeEvent userRecipeEvent) {
-        List<Long> allRecipeIds = new ArrayList<>();
-        Optional<User> optionalUser = userRepository.findById(userRecipeEvent.getUserId());
-        User user = optionalUser.orElse(null);
-        if(user != null) {
-            allRecipeIds.addAll(user.getAddedRecipeList());
-            allRecipeIds.addAll(user.getFavoriteRecipeList());
-            allRecipeIds.addAll(user.getCreatedRecipeList());
-        }
-        userRecipeEvent.setRecipeIdList(allRecipeIds);
-        kafkaTemplate.send("receive-recipe-id-topic", userRecipeEvent);
 
-    }
+
 
 }
