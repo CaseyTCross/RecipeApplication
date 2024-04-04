@@ -1,66 +1,61 @@
 package com.cross.recipe.service;
+import com.cross.recipe.configuration.WebClientConfig;
 import com.cross.recipe.entity.Recipe;
 import com.cross.recipe.event.UserRecipeEvent;
 import com.cross.recipe.repository.RecipeRepository;
+import lombok.RequiredArgsConstructor;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @Service
+@RequiredArgsConstructor
 public class RecipeServiceImpl implements RecipeService{
 
+
+    private final WebClient.Builder webClientBuilder;
+
     private final RecipeRepository recipeRepository;
-    private final KafkaTemplate<String, UserRecipeEvent> kafkaTemplate;
-
-    @Autowired
-    public RecipeServiceImpl(RecipeRepository recipeRepository, KafkaTemplate<String, UserRecipeEvent> kafkaTemplate) {
-        this.recipeRepository = recipeRepository;
-        this.kafkaTemplate = kafkaTemplate;
-    }
 
 
-
-    public List<Recipe> listUserRecipes(Long userId) {
-
-        System.out.println("Request hit listUserRecipes in RecipeServiceImpl");
-        UserRecipeEvent userRecipeEvent = null;
-        UserRecipeEvent sendUserRecipeEvent = new UserRecipeEvent();
-        sendUserRecipeEvent.setUserId(userId);
-        System.out.println("Preparing to send to Kafka: " + sendUserRecipeEvent);
-        CompletableFuture<SendResult<String,UserRecipeEvent>> result = kafkaTemplate.send("send-user-id-topic", sendUserRecipeEvent);
-        System.out.println("Completable Future result: " + result);
-
+    public List<Recipe> getRecipesByUserId(Long userId) {
+        UserRecipeEvent userRecipeEvent = new UserRecipeEvent();
+        userRecipeEvent.setUserId(userId);
+        UserRecipeEvent returnedUserRecipeEvent;
+        List<Long> userRecipeListIds = new ArrayList<>();
         try {
-            System.out.println("Try Block");
-            SendResult<String, UserRecipeEvent> sendResult = result.get();
-            userRecipeEvent = sendResult.getProducerRecord().value();
-
+            returnedUserRecipeEvent =  webClientBuilder.build()
+                    .post()
+                    .uri("http://user-service:8080/internal/{FILL THIS IN ONCE BUILT}")
+                    .bodyValue(userRecipeEvent)
+                    .retrieve()
+                    .bodyToMono(UserRecipeEvent.class)
+                    .block(Duration.ofSeconds(10));
+            userRecipeListIds = returnedUserRecipeEvent.getRecipeIdList();
         } catch (Exception e) {
-            System.out.println("Catch Block");
             e.printStackTrace();
         }
-        List<Recipe> recipeList = new ArrayList<>();
-        System.out.println("userRecipeEvent : " + userRecipeEvent);
-        if(userRecipeEvent != null && userRecipeEvent.getRecipeIdList() != null && recipeRepository != null) {
-            for(long l : userRecipeEvent.getRecipeIdList()) {
-                Recipe recipe = recipeRepository.getRecipeById(l);
-                    if(recipe != null) {
-                        recipeList.add(recipe);
-                    }
-
-
+        List<Recipe> userRecipesList = new ArrayList<>();
+        if(userRecipeListIds != null && !userRecipeListIds.isEmpty()) {
+            for(Long l : userRecipeListIds) {
+                userRecipesList.add(recipeRepository.getRecipeById(l));
             }
         }
-        return recipeList;
+        return userRecipesList;
 
+    }
+
+    public Recipe createRecipe(Recipe recipe) {
 
     }
 
